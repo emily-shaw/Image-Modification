@@ -1,1 +1,1 @@
-# Image-Modification
+# Iterative Image Generation App using Replicate + uv
