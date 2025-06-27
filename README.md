@@ -58,3 +58,36 @@ You can easily customize the webpage by:
 - Adding new features in `script.js`
 
 The webpage is designed to be easily extensible for additional functionality.
+
+## Backend Setup for Replicate Image Generation
+
+This project uses a Node.js backend to securely call the Replicate API for prompt-based image editing.
+
+### 1. Install dependencies
+
+```
+npm install express multer replicate cors dotenv
+```
+
+### 2. Create a .env file
+
+Add your Replicate API key to a `.env` file in the project root:
+
+```
+REPLICATE_API_TOKEN=your_replicate_api_token_here
+```
+
+### 3. Run the backend server
+
+```
+node server.js
+```
+
+The backend will listen on port 3001 by default.
+
+### 4. How it works
+- The frontend sends the current prompt and image to `http://localhost:3001/process-image`.
+- The backend calls Replicate's `black-forest-labs/flux-kontext-pro` model and returns the generated image URL.
+- The frontend displays the new image in the UI.
+
+---
