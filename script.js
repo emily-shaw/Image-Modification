@@ -89,4 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
     displaySection.style.display = 'block';
     form.style.display = 'none';
   }
+  // Add event listeners for 'Work with This Image' buttons
+  document.getElementById('work-original-btn').addEventListener('click', async function() {
+    const promptText = promptInput.value;
+    const currentImage = displayImage.src;
+    await workWithImage(promptText, currentImage);
+  });
+
+  document.getElementById('work-bw-btn').addEventListener('click', async function() {
+    const promptText = bwDisplayPrompt.value;
+    const currentImage = bwDisplayImage.src;
+    await workWithImage(promptText, currentImage);
+    // Update the prompt input field with the prompt just used (only for bw)
+    promptInput.value = promptText;
+  });
 });
