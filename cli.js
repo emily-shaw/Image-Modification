@@ -4,27 +4,34 @@ import dotenv from "dotenv";
 import fetch from "node-fetch";
 import chalk from "chalk";
 import boxen from "boxen";
+import readline from "readline";
 dotenv.config();
 import path from "node:path";
 import open from "open";
 
-// Usage: node cli.js [-o] "your prompt here" /path/to/image.jpg [-o]
+// Usage: node cli.js [-o] [-c] "your prompt here" /path/to/image.jpg [-o] [-c]
 const args = process.argv.slice(2);
 let openImage = false;
+let continueMode = false;
 let prompt, imagePath;
 
-// Support -o at any position
+// Support -o and -c at any position
 const oIndex = args.indexOf('-o');
 if (oIndex !== -1) {
   openImage = true;
-  args.splice(oIndex, 1); // Remove -o from args
+  args.splice(oIndex, 1);
+}
+const cIndex = args.indexOf('-c');
+if (cIndex !== -1) {
+  continueMode = true;
+  args.splice(cIndex, 1);
 }
 
 prompt = args[0];
 imagePath = args[1];
 
 if (!prompt || !imagePath) {
-  console.log(boxen(chalk.bold.red("Usage: node cli.js [-o] \"your prompt here\" /path/to/image.jpg [-o]"), {padding: 1, borderColor: 'red', borderStyle: 'round'}));
+  console.log(boxen(chalk.bold.red("Usage: node cli.js [-o] [-c] \"your prompt here\" /path/to/image.jpg [-o] [-c]"), {padding: 1, borderColor: 'red', borderStyle: 'round'}));
   process.exit(1);
 }
 
@@ -32,10 +39,9 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-async function main() {
+async function processImage(prompt, imagePath) {
   const imageData = fs.readFileSync(imagePath, { encoding: "base64" });
   const dataUrl = `data:image/jpeg;base64,${imageData}`;
-
   const input = {
     prompt: prompt,
     input_image: dataUrl,
@@ -43,7 +49,6 @@ async function main() {
     output_format: "jpg",
     safety_tolerance: 2
   };
-
   try {
     console.log(boxen(chalk.cyanBright("Calling Replicate API..."), {padding: 1, borderColor: 'cyan', borderStyle: 'round'}));
     const output = await replicate.run("black-forest-labs/flux-kontext-pro", { input });
@@ -73,7 +78,6 @@ async function main() {
         dest.on('finish', resolve);
       });
       console.log(boxen(chalk.greenBright(`Image downloaded to: ${filePath}`), {padding: 1, borderColor: 'green', borderStyle: 'round'}));
-      // Store filePath for later use
       return filePath;
     } else {
       console.log(boxen(chalk.yellow("No image URL returned."), {padding: 1, borderColor: 'yellow', borderStyle: 'round'}));
@@ -85,8 +89,40 @@ async function main() {
   }
 }
 
-main().then((filePath) => {
-  if (openImage && filePath) {
-    open(filePath);
+async function interactiveEditLoop(lastImagePath) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  let currentImagePath = lastImagePath;
+  while (true) {
+    await new Promise((resolve) => {
+      rl.question(chalk.cyan("Enter a new prompt to edit the image (or just press Enter to finish): "), async (newPrompt) => {
+        if (newPrompt.trim() === '') {
+          rl.close();
+          resolve();
+          return;
+        }
+        const newPath = await processImage(newPrompt, currentImagePath);
+        if (newPath && openImage) {
+          await open(newPath);
+        }
+        currentImagePath = newPath || currentImagePath;
+        resolve();
+      });
+    });
+    if (rl.closed) break;
   }
-}); 
+}
+
+async function main() {
+  const firstImagePath = await processImage(prompt, imagePath);
+  if (openImage && firstImagePath) {
+    await open(firstImagePath);
+  }
+  if (continueMode && firstImagePath) {
+    await interactiveEditLoop(firstImagePath);
+  }
+}
+
+main(); 
