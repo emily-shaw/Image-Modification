@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image & Prompt Display</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Image & Prompt Display</h1>
+    <form id="upload-form">
+      <label for="prompt">Enter your prompt:</label>
+      <textarea id="prompt" name="prompt" rows="3" maxlength="200" placeholder="Type your prompt here..."></textarea>
+      <label for="image-upload" class="image-label">Upload an image:</label>
+      <input type="file" id="image-upload" accept="image/*">
+      <div id="image-preview-container">
+        <img id="image-preview" src="" alt="Image Preview" style="display:none;"/>
+      </div>
+      <button type="submit">Display Image & Prompt</button>
+    </form>
+    <div id="display-section" style="display:none;">
+      <div class="side-by-side">
+        <div class="display-block">
+          <h2>Original Prompt:</h2>
+          <p id="display-prompt"></p>
+          <h2>Original Image:</h2>
+          <img id="display-image" src="" alt="Displayed Image"/>
+        </div>
+        <div class="display-block">
+          <h2>Black & White Prompt:</h2>
+          <p id="bw-display-prompt"></p>
+          <h2>Black & White Image:</h2>
+          <img id="bw-display-image" src="" alt="Black and White Image"/>
+        </div>
+      </div>
+      <button id="reset-btn">Start Over</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html> 
