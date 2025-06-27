@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -23,15 +22,17 @@
       <div class="side-by-side">
         <div class="display-block">
           <h2>Original Prompt:</h2>
-          <p id="display-prompt"></p>
+          <textarea id="display-prompt" rows="3" maxlength="200" style="width:100%;resize:vertical;"></textarea>
           <h2>Original Image:</h2>
           <img id="display-image" src="" alt="Displayed Image"/>
+          <button type="button" id="work-original-btn">Work with This Image</button>
         </div>
         <div class="display-block">
           <h2>Black & White Prompt:</h2>
-          <p id="bw-display-prompt"></p>
+          <textarea id="bw-display-prompt" rows="3" maxlength="200" style="width:100%;resize:vertical;"></textarea>
           <h2>Black & White Image:</h2>
           <img id="bw-display-image" src="" alt="Black and White Image"/>
+          <button type="button" id="work-bw-btn">Work with This Image</button>
         </div>
       </div>
       <button id="reset-btn">Start Over</button>

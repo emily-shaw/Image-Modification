@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   const imageInput = document.getElementById('image-upload');
   const imagePreview = document.getElementById('image-preview');
-  const imagePreviewContainer = document.getElementById('image-preview-container');
   const promptInput = document.getElementById('prompt');
   const form = document.getElementById('upload-form');
   const displaySection = document.getElementById('display-section');
@@ -38,12 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('Please upload a valid image file.');
       return;
     }
-    displayPrompt.textContent = prompt;
+    displayPrompt.value = prompt;
     displayImage.src = imagePreview.src;
-    bwDisplayPrompt.textContent = prompt;
-    convertToBlackAndWhite(imagePreview.src, function(bwDataUrl) {
-      bwDisplayImage.src = bwDataUrl;
-    });
+    bwDisplayPrompt.value = prompt;
     displaySection.style.display = 'block';
     form.style.display = 'none';
   });
@@ -56,25 +52,41 @@ document.addEventListener('DOMContentLoaded', function() {
     form.style.display = 'block';
     promptInput.value = '';
   });
-});
 
-function convertToBlackAndWhite(imageSrc, callback) {
-  const img = new window.Image();
-  img.crossOrigin = 'Anonymous';
-  img.onload = function() {
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const avg = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-      data[i] = data[i+1] = data[i+2] = avg;
+  async function processWithReplicate(prompt, imageDataUrl) {
+    // Convert dataURL to Blob
+    const blob = await (await fetch(imageDataUrl)).blob();
+    const formData = new FormData();
+    formData.append('prompt', prompt);
+    formData.append('image', blob, 'input.png');
+
+    const response = await fetch('http://localhost:3001/process-image', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await response.json();
+    return data.image; // This is the URL to the processed image
+  }
+
+  async function workWithImage(promptText, imageSrc) {
+    displayPrompt.value = promptText;
+    displayImage.src = imageSrc;
+    bwDisplayPrompt.value = promptText;
+    // Show loading state
+    bwDisplayImage.src = '';
+    bwDisplayImage.alt = 'Processing...';
+    bwDisplayImage.style.opacity = 0.5;
+    try {
+      console.log('About to POST to /process-image'); // Debug log before fetch
+      const processedImageUrl = await processWithReplicate(promptText, imageSrc);
+      bwDisplayImage.src = processedImageUrl;
+      bwDisplayImage.alt = 'Processed Image';
+      bwDisplayImage.style.opacity = 1;
+    } catch (err) {
+      bwDisplayImage.alt = 'Error processing image';
+      alert('Error processing image: ' + err.message);
     }
-    ctx.putImageData(imageData, 0, 0);
-    callback(canvas.toDataURL());
-  };
-  img.src = imageSrc;
-} 
+    displaySection.style.display = 'block';
+    form.style.display = 'none';
+  }
+});
